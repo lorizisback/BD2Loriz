@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item android:title="Tipo Mappa">
+
+            <menu>
+                <item
+                    android:id="@+id/map_satellite"
+                    android:icon="@drawable/ic_terrain_black_24dp"
+                    android:title="Satellite" />
+                <item
+                    android:id="@+id/map_topo"
+                    android:icon="@drawable/ic_map_black_24dp"
+                    android:title="Topographic" />
+                <item
+                    android:id="@+id/map_gray"
+                    android:icon="@drawable/ic_invert_colors_black_24dp"
+                    android:title="Gray" />
+                <item
+                    android:id="@+id/map_hybrid"
+                    android:icon="@drawable/ic_star_half_black_24dp"
+                    android:title="Hybrid" />
+                <item
+                    android:id="@+id/map_geographic"
+                    android:icon="@drawable/ic_my_location_black_24dp"
+                    android:title="Geographic" />
+                <item
+                    android:id="@+id/map_osm"
+                    android:icon="@drawable/ic_lock_open_black_24dp"
+                    android:title="OpenStreetMap" />
+                <item
+                    android:id="@+id/map_streets"
+                    android:icon="@drawable/ic_directions_car_black_24dp"
+                    android:title="Streets" />
+            </menu>
+        </item>
+    </group>
+
+</menu>

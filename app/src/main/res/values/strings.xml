@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">SpatiaEM</string>
+
+    <string name="navigation_drawer_open">Apri cassetto</string>
+    <string name="navigation_drawer_close">Chiudi cassetto</string>
+
+    <string name="action_settings">Impostazioni</string>
+    <string name="app_description">Alcune Query Spaziali su Province, Elettrodotti e Metanodotti in Sardegna</string>
+</resources>
