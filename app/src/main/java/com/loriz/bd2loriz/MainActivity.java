@@ -2,35 +2,37 @@ package com.loriz.bd2loriz;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
-import android.widget.Toast;
 import android.widget.Toolbar;
 
+import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapOptions;
 import com.esri.android.map.MapView;
+import com.esri.core.geometry.GeometryEngine;
+import com.esri.core.geometry.Polygon;
+import com.esri.core.geometry.SpatialReference;
+import com.esri.core.map.Graphic;
+import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.loriz.bd2loriz.adapter.EMPagerAdapter;
 import com.loriz.bd2loriz.utils.CustomViewPager;
+import com.loriz.bd2loriz.utils.DBHelper;
 import com.wangjie.androidbucket.utils.ABTextUtil;
-import com.wangjie.androidbucket.utils.imageprocess.ABShape;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionHelper;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout;
 import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RFACLabelItem;
 import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RapidFloatingActionContentLabelList;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+
+import jsqlite.Exception;
 
 public class MainActivity extends FragmentActivity
         implements NavigationView.OnNavigationItemSelectedListener, RapidFloatingActionContentLabelList.OnRapidFloatingActionContentLabelListListener {
@@ -45,6 +47,11 @@ public class MainActivity extends FragmentActivity
     private int MAP_PAGE = 0;
     private boolean isRFABOpen = false;
     private RapidFloatingActionButton rfaBtn;
+    private DBHelper dbHelper;
+    private SpatialReference input;
+    private SpatialReference output;
+    private int layerProvinceIndex = -1;
+    private SimpleMarkerSymbol sms;
 
 
     @Override
@@ -86,10 +93,52 @@ public class MainActivity extends FragmentActivity
         mPagerAdapter = new EMPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mPagerAdapter);
 
+        input = SpatialReference.create(3003);
+        output = SpatialReference.create(3857);
+
+        sms = new SimpleMarkerSymbol(Color.RED, 3, SimpleMarkerSymbol.STYLE.CIRCLE);
+
         RapidFloatingActionContentLabelList rfaContent = new RapidFloatingActionContentLabelList(this);
         rfaContent.setOnRapidFloatingActionContentLabelListListener(this);
 
+        try {
+            dbHelper = DBHelper.getInstance(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         items = new ArrayList<>();
+        initializeItems(items);
+
+        rfaContent
+                .setItems(items)
+                .setIconShadowRadius(ABTextUtil.dip2px(this, 5))
+                .setIconShadowColor(0xff888888)
+                .setIconShadowDy(ABTextUtil.dip2px(this, 5))
+        ;
+        rfabHelper = new RapidFloatingActionHelper(
+                this,
+                rfaLayout,
+                rfaBtn,
+                rfaContent
+        ).build();
+
+        rfaBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mMapView == null) {
+                    //mMapView = ((MapFragment) mPagerAdapter.getFragment(0)).mMapView;
+                    mMapView = (MapView) mPagerAdapter.getFragment(0).getView().findViewById(R.id.map_layout);
+                }
+                rfabHelper.toggleContent();
+                isRFABOpen = !isRFABOpen;
+            }
+        });
+
+    }
+
+    private void initializeItems(ArrayList<RFACLabelItem> items) {
         items.add(new RFACLabelItem<Integer>()
                 .setLabel("Mostra/Nascondi Province")
                 .setResId(R.drawable.ic_sard_white)
@@ -118,33 +167,12 @@ public class MainActivity extends FragmentActivity
                 .setIconPressedColor(0xffbf360c)
                 .setWrapper(0)
         );
-        rfaContent
-                .setItems(items)
-                .setIconShadowRadius(ABTextUtil.dip2px(this, 5))
-                .setIconShadowColor(0xff888888)
-                .setIconShadowDy(ABTextUtil.dip2px(this, 5))
-        ;
-        rfabHelper = new RapidFloatingActionHelper(
-                this,
-                rfaLayout,
-                rfaBtn,
-                rfaContent
-        ).build();
-
-        rfaBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                rfabHelper.toggleContent();
-                isRFABOpen = !isRFABOpen;
-            }
-        });
-
     }
 
     @Override
     protected void onStart() {
-
         super.onStart();
+
     }
 
     @Override
@@ -153,7 +181,6 @@ public class MainActivity extends FragmentActivity
         if (mMapView != null) {
             // Save map state
             mMapState = mMapView.retainState();
-
 
             // Call MapView.pause to suspend map rendering while the activity is
             // paused, which can save battery usage.
@@ -194,7 +221,9 @@ public class MainActivity extends FragmentActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
+
         if (mMapView == null) {
+            //mMapView = ((MapFragment) mPagerAdapter.getFragment(0)).mMapView;
             mMapView = (MapView) mPagerAdapter.getFragment(0).getView().findViewById(R.id.map_layout);
         }
         int id = item.getItemId();
@@ -254,11 +283,54 @@ public class MainActivity extends FragmentActivity
 
     @Override
     public void onRFACItemIconClick(int position, RFACLabelItem item) {
-        if (position == (items.size() - 1)) {
-            mViewPager.setCurrentItem(QUERY_PAGE, true);
+
+
+        switch (position) {
+            case 0: {
+                if (layerProvinceIndex != -1) {
+                    mMapView.removeLayer(layerProvinceIndex);
+                    layerProvinceIndex=-1;
+                } else {
+                    mostraProvince();
+                }
+                break;
+            }
+            case 3: {
+                mViewPager.setCurrentItem(QUERY_PAGE, true);
+                break;
+            }
+
         }
+
         rfabHelper.toggleContent();
         isRFABOpen = false;
+    }
+
+    private void mostraProvince() {
+        ArrayList<String> res = new ArrayList<>();
+        //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
+        res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTProvincia;");
+
+        //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
+
+        ArrayList<Polygon> pols = new ArrayList<>();
+        try {
+            pols = dbHelper.createPolygon(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Graphic[] graphics=new Graphic[pols.size()];
+
+        GraphicsLayer layer_province=new GraphicsLayer();
+        for (int i = 0; i <pols.size() ; i++) {
+            Polygon temp = pols.get(i);
+            graphics[i]=new Graphic(GeometryEngine.project(temp,input,output),sms);
+
+        }
+        layer_province.addGraphics(graphics);
+        layerProvinceIndex = 1;
+        mMapView.addLayer(layer_province, 1);
     }
 
 

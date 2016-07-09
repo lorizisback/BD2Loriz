@@ -32,7 +32,7 @@ android {
         }
     }
 
-    packagingOptions{
+    packagingOptions {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LGPL2.1'
         exclude 'META-INF/NOTICE'
@@ -54,13 +54,14 @@ dependencies {
     compile 'com.github.wangjiegulu:ShadowViewHelper:1.0.1'
     compile group: 'com.nineoldandroids', name: 'library', version: '2.4.0'
     compile 'com.github.wangjiegulu:RapidFloatingActionButton:1.0.3'
+    compile 'com.parse.bolts:bolts-tasks:1.4.0'
 }
 
 
 task copyNativeLibs(type: Copy) {
     from file('../spatialite-db-driver/src/jniLibs')
     into new File(buildDir, 'native-libs')
-    include ('*/*.so')
+    include('*/*.so')
 }
 
 tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn copyNativeLibs }
