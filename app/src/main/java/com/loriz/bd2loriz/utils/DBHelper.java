@@ -3,11 +3,10 @@ package com.loriz.bd2loriz.utils;
 import android.content.Context;
 import android.util.Log;
 
-import com.esri.core.geometry.GeometryEngine;
+import com.esri.core.geometry.MultiPath;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.Polygon;
-import com.esri.core.geometry.SpatialReference;
-import com.wangjie.androidbucket.thread.ThreadPool;
+import com.esri.core.geometry.Polyline;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,19 +14,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RunnableFuture;
 
-import bolts.Task;
-import bolts.TaskCompletionSource;
 import jsqlite.Constants;
 import jsqlite.Database;
 import jsqlite.Exception;
@@ -39,7 +33,7 @@ import jsqlite.Stmt;
 public class DBHelper {
 
     private static DBHelper instance;
-    private String DB_NAME = "test3.sqlite";
+    private String DB_NAME = "bd2final.sqlite";
     private String DB_PATH = "/data/data/com.loriz.bd2loriz/databases";
     private String TAG = "DBHelper";
     private String TAG_SQL = "DBHelper_JSQLite";
@@ -125,28 +119,28 @@ public class DBHelper {
         return resultList;
     }
 
-    public ArrayList<Polygon> createPolygon(ArrayList<String> poly) throws Exception {
+    public ArrayList<MultiPath> createGeometry(ArrayList<String> poly, int polyTypeStart, int polyTypeEnd) throws Exception {
 
         Log.d("drawPoly", "Inizio disegno poligono");
-        ArrayList<Polygon> polyg=new ArrayList<>();
+        ArrayList<MultiPath> polyg=new ArrayList<>();
 
         ExecutorService es = Executors.newCachedThreadPool();
-        ArrayList<GetSinglePolygon> coll = new ArrayList<>();
+        ArrayList<GetSingleMultiPath> coll = new ArrayList<>();
 
         for (int i = 0; i < poly.size(); i++) {
 
             Log.d("lel", "Polygono " + i);
-            coll.add(new GetSinglePolygon(poly.get(i), i));
+            coll.add(new GetSingleMultiPath(poly.get(i), i, polyTypeStart, polyTypeEnd));
 
         }
-        List<Future<Polygon>> results = new LinkedList<>();
+        List<Future<MultiPath>> results = new LinkedList<>();
         try {
           results = es.invokeAll(coll);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        for (Future<Polygon> fut : results) {
+        for (Future<MultiPath> fut : results) {
             try {
                 polyg.add(fut.get());
             } catch (InterruptedException e) {
@@ -161,36 +155,66 @@ public class DBHelper {
     }
 
 
-    class GetSinglePolygon implements Callable<Polygon> {
+    class GetSingleMultiPath implements Callable<MultiPath> {
 
+        private int trick;
+        private int polyTypeStart;
+        private int polyTypeEnd;
         private int id;
-        private Polygon polygon;
+        private MultiPath geometry;
         private String passedString;
 
-        public GetSinglePolygon(String passedString, int id) {
+        public GetSingleMultiPath(String passedString, int id, int polyTypeStart, int polyTypeEnd) {
             this.passedString = passedString;
             this.id = id;
-            polygon = new Polygon();
+            this.polyTypeStart = polyTypeStart;
+            this.polyTypeEnd = polyTypeEnd;
+
+            switch (polyTypeStart){
+                case 9:
+                {
+                    //case POLYGON
+                    geometry = new Polygon();
+                    trick = 4;
+                    break;
+                }
+
+                case 11:
+                {
+                    //case POLYLINE
+                    geometry = new Polyline();
+                    trick = 0;
+                    break;
+                }
+
+                default:
+                {
+                    geometry = new Polygon();
+                    trick = 4;
+
+                    break;
+                }
+            }
+
         }
 
         @Override
-        public Polygon call() throws java.lang.Exception {
+        public MultiPath call() throws java.lang.Exception {
             Log.d("THREADS", "Thread " + id + " started.");
 
+            String[] split_comma = passedString.substring(polyTypeStart, passedString.length() - polyTypeEnd).split("\\s*(,|\\s)\\s*");
 
-            String[] split_comma = passedString.substring(9, passedString.length() - 2).split("\\s*(,|\\s)\\s*");
-
-            for (int j = 0; j < split_comma.length; j+=4) {
+            for (int j = 0; j < split_comma.length; j+=trick) {
 
                 if (j != 0) {
-                    polygon.lineTo(new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++])));
+                    geometry.lineTo(new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++])));
                 } else {
                     Log.d("THREADS", "Thread " + id + " working.");
-                    polygon.startPath(new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++])));
+                    geometry.startPath(new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++])));
                 }
             }
             Log.d("THREADS", "Thread " + id + " returning.");
-            return polygon;
+            return geometry;
         }
     }
 

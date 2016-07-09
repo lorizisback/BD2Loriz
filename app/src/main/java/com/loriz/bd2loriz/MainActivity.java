@@ -15,13 +15,17 @@ import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapOptions;
 import com.esri.android.map.MapView;
 import com.esri.core.geometry.GeometryEngine;
+import com.esri.core.geometry.MultiPath;
 import com.esri.core.geometry.Polygon;
+import com.esri.core.geometry.Polyline;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
+import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.loriz.bd2loriz.adapter.EMPagerAdapter;
 import com.loriz.bd2loriz.utils.CustomViewPager;
 import com.loriz.bd2loriz.utils.DBHelper;
+import com.loriz.bd2loriz.utils.PolyType;
 import com.wangjie.androidbucket.utils.ABTextUtil;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionHelper;
@@ -50,8 +54,16 @@ public class MainActivity extends FragmentActivity
     private DBHelper dbHelper;
     private SpatialReference input;
     private SpatialReference output;
-    private int layerProvinceIndex = -1;
+    private boolean areProvinceVisible = false;
+    private boolean areElettrodottiVisible = false;
     private SimpleMarkerSymbol sms;
+    private SimpleLineSymbol slsProv;
+    private SimpleLineSymbol slsElettro;
+    private GraphicsLayer layer_province;
+    private Graphic[] province_graphics;
+    private Graphic[] elettrodotti_graphics;
+    private PolyType polyType;
+    private GraphicsLayer layer_elettrodotti;
 
 
     @Override
@@ -97,6 +109,10 @@ public class MainActivity extends FragmentActivity
         output = SpatialReference.create(3857);
 
         sms = new SimpleMarkerSymbol(Color.RED, 3, SimpleMarkerSymbol.STYLE.CIRCLE);
+        slsProv = new SimpleLineSymbol(Color.BLUE, 2, SimpleLineSymbol.STYLE.SOLID);
+        slsElettro = new SimpleLineSymbol(Color.YELLOW, 2, SimpleLineSymbol.STYLE.DASH);
+
+        polyType = PolyType.getInstance();
 
         RapidFloatingActionContentLabelList rfaContent = new RapidFloatingActionContentLabelList(this);
         rfaContent.setOnRapidFloatingActionContentLabelListListener(this);
@@ -287,14 +303,39 @@ public class MainActivity extends FragmentActivity
 
         switch (position) {
             case 0: {
-                if (layerProvinceIndex != -1) {
-                    mMapView.removeLayer(layerProvinceIndex);
-                    layerProvinceIndex=-1;
+                if (layer_province != null) {
+                    if (areProvinceVisible != false) {
+                        mMapView.removeLayer(layer_province);
+                        areProvinceVisible = false;
+                    } else {
+                        layer_province = new GraphicsLayer();
+                        layer_province.addGraphics(province_graphics);
+                        mMapView.addLayer(layer_province);
+                        areProvinceVisible = true;
+                    }
                 } else {
                     mostraProvince();
                 }
                 break;
             }
+
+            case 1: {
+                if (layer_elettrodotti != null) {
+                    if (areElettrodottiVisible != false) {
+                        mMapView.removeLayer(layer_elettrodotti);
+                        areElettrodottiVisible = false;
+                    } else {
+                        layer_elettrodotti = new GraphicsLayer();
+                        layer_elettrodotti.addGraphics(elettrodotti_graphics);
+                        mMapView.addLayer(layer_elettrodotti);
+                        areElettrodottiVisible = true;
+                    }
+                } else {
+                    mostraElettrodotti();
+                }
+                break;
+            }
+
             case 3: {
                 mViewPager.setCurrentItem(QUERY_PAGE, true);
                 break;
@@ -307,31 +348,60 @@ public class MainActivity extends FragmentActivity
     }
 
     private void mostraProvince() {
-        ArrayList<String> res = new ArrayList<>();
-        //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
-        res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTProvincia;");
+        ArrayList<String> res;
 
+        res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTProvincia;");
+        //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
         //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
 
-        ArrayList<Polygon> pols = new ArrayList<>();
+        ArrayList<MultiPath> pols = new ArrayList<>();
         try {
-            pols = dbHelper.createPolygon(res);
+            pols = dbHelper.createGeometry(res, polyType.POLYGON, polyType.POLYGON_END);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        Graphic[] graphics=new Graphic[pols.size()];
+        province_graphics =new Graphic[pols.size()];
 
-        GraphicsLayer layer_province=new GraphicsLayer();
+        layer_province=new GraphicsLayer();
         for (int i = 0; i <pols.size() ; i++) {
-            Polygon temp = pols.get(i);
-            graphics[i]=new Graphic(GeometryEngine.project(temp,input,output),sms);
+            Polygon temp = (Polygon) pols.get(i);
+            province_graphics[i]=new Graphic(GeometryEngine.project(temp,input,output), slsProv);
 
         }
-        layer_province.addGraphics(graphics);
-        layerProvinceIndex = 1;
-        mMapView.addLayer(layer_province, 1);
+        layer_province.addGraphics(province_graphics);
+        mMapView.addLayer(layer_province);
+        areProvinceVisible = true;
     }
+
+
+    private void mostraElettrodotti() {
+        ArrayList<String> res;
+
+        res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTElettrodotto;");
+        //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
+        //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
+
+        ArrayList<MultiPath> pols = new ArrayList<>();
+        try {
+            pols = dbHelper.createGeometry(res, polyType.LINESTRING, polyType.LINESTRING_END);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        elettrodotti_graphics =new Graphic[pols.size()];
+
+        layer_elettrodotti=new GraphicsLayer();
+        for (int i = 0; i <pols.size() ; i++) {
+            Polyline temp = (Polyline) pols.get(i);
+            elettrodotti_graphics[i]=new Graphic(GeometryEngine.project(temp,input,output), slsElettro);
+
+        }
+        layer_elettrodotti.addGraphics(elettrodotti_graphics);
+        mMapView.addLayer(layer_elettrodotti);
+        areElettrodottiVisible = true;
+    }
+
 
 
 }
