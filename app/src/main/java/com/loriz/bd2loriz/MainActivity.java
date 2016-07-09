@@ -1,6 +1,8 @@
 package com.loriz.bd2loriz;
 
+import android.app.ProgressDialog;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
@@ -59,11 +61,16 @@ public class MainActivity extends FragmentActivity
     private SimpleMarkerSymbol sms;
     private SimpleLineSymbol slsProv;
     private SimpleLineSymbol slsElettro;
+    private SimpleLineSymbol slsAcqua;
     private GraphicsLayer layer_province;
     private Graphic[] province_graphics;
     private Graphic[] elettrodotti_graphics;
     private PolyType polyType;
     private GraphicsLayer layer_elettrodotti;
+    private ProgressDialog pDialog;
+    private Graphic[] acquedotti_graphics;
+    private GraphicsLayer layer_acquedotti;
+    private boolean areAcquedottiVisible = false;
 
 
     @Override
@@ -109,8 +116,9 @@ public class MainActivity extends FragmentActivity
         output = SpatialReference.create(3857);
 
         sms = new SimpleMarkerSymbol(Color.RED, 3, SimpleMarkerSymbol.STYLE.CIRCLE);
-        slsProv = new SimpleLineSymbol(Color.BLUE, 2, SimpleLineSymbol.STYLE.SOLID);
-        slsElettro = new SimpleLineSymbol(Color.YELLOW, 2, SimpleLineSymbol.STYLE.DASH);
+        slsProv = new SimpleLineSymbol(getColor(R.color.sardegna_brown), 2, SimpleLineSymbol.STYLE.SOLID);
+        slsElettro = new SimpleLineSymbol(getColor(R.color.elettro_yellow), 2, SimpleLineSymbol.STYLE.DASH);
+        slsAcqua = new SimpleLineSymbol(getColor(R.color.acqua_blue), 2, SimpleLineSymbol.STYLE.DASH);
 
         polyType = PolyType.getInstance();
 
@@ -158,29 +166,29 @@ public class MainActivity extends FragmentActivity
         items.add(new RFACLabelItem<Integer>()
                 .setLabel("Mostra/Nascondi Province")
                 .setResId(R.drawable.ic_sard_white)
-                .setIconNormalColor(0xff4e342e)
-                .setIconPressedColor(0xff3e2723)
+                .setIconNormalColor(getColor(R.color.sardegna_brown))
+                .setIconPressedColor(getColor(R.color.sardegna_brown_dark))
                 .setWrapper(0)
         );
         items.add(new RFACLabelItem<Integer>()
                 .setLabel("Mostra/Nascondi Elettrodotti")
                 .setResId(R.drawable.ic_power_white_24dp)
-                .setIconNormalColor(0xffcccc00)
-                .setIconPressedColor(0xff808000)
+                .setIconNormalColor(getColor(R.color.elettro_yellow))
+                .setIconPressedColor(getColor(R.color.elettro_yellow_dark))
                 .setWrapper(0)
         );
         items.add(new RFACLabelItem<Integer>()
-                .setLabel("Mostra/Nascondi Metanodotti")
-                .setResId(R.drawable.ic_local_gas_station_white_24dp)
-                .setIconNormalColor(0xff804000)
-                .setIconPressedColor(0xff4d2600)
+                .setLabel("Mostra/Nascondi Acquedotti")
+                .setResId(R.drawable.ic_water_white_24dp)
+                .setIconNormalColor(getColor(R.color.acqua_blue))
+                .setIconPressedColor(getColor(R.color.acqua_blue_dark))
                 .setWrapper(0)
         );
         items.add(new RFACLabelItem<Integer>()
                 .setLabel("Vai alle Query")
                 .setResId(R.drawable.ic_search_white_24dp)
-                .setIconNormalColor(0xffd84315)
-                .setIconPressedColor(0xffbf360c)
+                .setIconNormalColor(getColor(R.color.querypage))
+                .setIconPressedColor(getColor(R.color.querypage_dark))
                 .setWrapper(0)
         );
     }
@@ -314,7 +322,7 @@ public class MainActivity extends FragmentActivity
                         areProvinceVisible = true;
                     }
                 } else {
-                    mostraProvince();
+                    new MostraProvinceAsync().execute();
                 }
                 break;
             }
@@ -331,7 +339,24 @@ public class MainActivity extends FragmentActivity
                         areElettrodottiVisible = true;
                     }
                 } else {
-                    mostraElettrodotti();
+                    new MostraElettrodottiAsync().execute();
+                }
+                break;
+            }
+
+            case 2: {
+                if (layer_acquedotti != null) {
+                    if (areAcquedottiVisible != false) {
+                        mMapView.removeLayer(layer_acquedotti);
+                        areAcquedottiVisible = false;
+                    } else {
+                        layer_acquedotti = new GraphicsLayer();
+                        layer_acquedotti.addGraphics(acquedotti_graphics);
+                        mMapView.addLayer(layer_acquedotti);
+                        areAcquedottiVisible = true;
+                    }
+                } else {
+                    new MostraAcquedottiAsync().execute();
                 }
                 break;
             }
@@ -342,66 +367,162 @@ public class MainActivity extends FragmentActivity
             }
 
         }
-
         rfabHelper.toggleContent();
         isRFABOpen = false;
     }
 
-    private void mostraProvince() {
-        ArrayList<String> res;
 
-        res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTProvincia;");
-        //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
-        //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
+    private class MostraElettrodottiAsync extends AsyncTask<Void, Void, Graphic[]> {
+        @Override
+        protected Graphic[] doInBackground(Void... voids) {
+            ArrayList<String> res;
 
-        ArrayList<MultiPath> pols = new ArrayList<>();
-        try {
-            pols = dbHelper.createGeometry(res, polyType.POLYGON, polyType.POLYGON_END);
-        } catch (Exception e) {
-            e.printStackTrace();
+            res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTElettrodotto;");
+            //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
+            //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
+
+            ArrayList<MultiPath> pols = new ArrayList<>();
+            try {
+                pols = dbHelper.createGeometry(res, polyType.LINESTRING, polyType.LINESTRING_END);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            elettrodotti_graphics =new Graphic[pols.size()];
+
+            for (int i = 0; i <pols.size() ; i++) {
+                Polyline temp = (Polyline) pols.get(i);
+                elettrodotti_graphics[i]=new Graphic(GeometryEngine.project(temp,input,output), slsElettro);
+            }
+
+            return elettrodotti_graphics;
         }
 
-        province_graphics =new Graphic[pols.size()];
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(MainActivity.this);
+            pDialog.setMessage("Query in esecuzione...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
 
-        layer_province=new GraphicsLayer();
-        for (int i = 0; i <pols.size() ; i++) {
-            Polygon temp = (Polygon) pols.get(i);
-            province_graphics[i]=new Graphic(GeometryEngine.project(temp,input,output), slsProv);
+        @Override
+        protected void onPostExecute(Graphic[] aVoid) {
+            super.onPostExecute(aVoid);
+            if (pDialog.isShowing()) {
+                pDialog.dismiss();
+            }
+
+            layer_elettrodotti=new GraphicsLayer();
+
+            layer_elettrodotti.addGraphics(elettrodotti_graphics);
+            mMapView.addLayer(layer_elettrodotti);
+            areElettrodottiVisible = true;
 
         }
-        layer_province.addGraphics(province_graphics);
-        mMapView.addLayer(layer_province);
-        areProvinceVisible = true;
     }
 
+    private class MostraProvinceAsync extends AsyncTask<Void, Void, Graphic[]> {
+        @Override
+        protected Graphic[] doInBackground(Void... voids) {
+            ArrayList<String> res;
 
-    private void mostraElettrodotti() {
-        ArrayList<String> res;
+            res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTProvincia;");
 
-        res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTElettrodotto;");
-        //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
-        //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
+            ArrayList<MultiPath> pols = new ArrayList<>();
 
-        ArrayList<MultiPath> pols = new ArrayList<>();
-        try {
-            pols = dbHelper.createGeometry(res, polyType.LINESTRING, polyType.LINESTRING_END);
-        } catch (Exception e) {
-            e.printStackTrace();
+            try {
+                pols = dbHelper.createGeometry(res, polyType.POLYGON, polyType.POLYGON_END);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            province_graphics =new Graphic[pols.size()];
+
+            for (int i = 0; i <pols.size() ; i++) {
+                Polygon temp = (Polygon) pols.get(i);
+                province_graphics[i]=new Graphic(GeometryEngine.project(temp,input,output), slsProv);
+
+            }
+
+            return province_graphics;
         }
 
-        elettrodotti_graphics =new Graphic[pols.size()];
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(MainActivity.this);
+            pDialog.setMessage("Query in esecuzione...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
 
-        layer_elettrodotti=new GraphicsLayer();
-        for (int i = 0; i <pols.size() ; i++) {
-            Polyline temp = (Polyline) pols.get(i);
-            elettrodotti_graphics[i]=new Graphic(GeometryEngine.project(temp,input,output), slsElettro);
+        @Override
+        protected void onPostExecute(Graphic[] aVoid) {
+            super.onPostExecute(aVoid);
+            if (pDialog.isShowing()) {
+                pDialog.dismiss();
+            }
+
+            layer_province=new GraphicsLayer();
+
+            layer_province.addGraphics(province_graphics);
+            mMapView.addLayer(layer_province);
+            areProvinceVisible = true;
 
         }
-        layer_elettrodotti.addGraphics(elettrodotti_graphics);
-        mMapView.addLayer(layer_elettrodotti);
-        areElettrodottiVisible = true;
     }
 
+    private class MostraAcquedottiAsync extends AsyncTask<Void, Void, Graphic[]> {
+        @Override
+        protected Graphic[] doInBackground(Void... voids) {
+            ArrayList<String> res;
 
+            res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTAcquedotto;");
+            //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
+            //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
+
+            ArrayList<MultiPath> pols = new ArrayList<>();
+            try {
+                pols = dbHelper.createGeometry(res, polyType.LINESTRING, polyType.LINESTRING_END);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            acquedotti_graphics =new Graphic[pols.size()];
+
+            for (int i = 0; i <pols.size() ; i++) {
+                Polyline temp = (Polyline) pols.get(i);
+                acquedotti_graphics[i]=new Graphic(GeometryEngine.project(temp,input,output), slsAcqua);
+            }
+
+            return acquedotti_graphics;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(MainActivity.this);
+            pDialog.setMessage("Query in esecuzione...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected void onPostExecute(Graphic[] aVoid) {
+            super.onPostExecute(aVoid);
+            if (pDialog.isShowing()) {
+                pDialog.dismiss();
+            }
+
+            layer_acquedotti =new GraphicsLayer();
+
+            layer_acquedotti.addGraphics(acquedotti_graphics);
+            mMapView.addLayer(layer_acquedotti);
+            areAcquedottiVisible = true;
+
+        }
+    }
 
 }

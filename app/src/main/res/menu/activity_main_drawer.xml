@@ -3,7 +3,6 @@
 
     <group android:checkableBehavior="single">
         <item android:title="Tipo Mappa">
-
             <menu>
                 <item
                     android:id="@+id/map_satellite"
@@ -36,5 +35,4 @@
             </menu>
         </item>
     </group>
-
 </menu>

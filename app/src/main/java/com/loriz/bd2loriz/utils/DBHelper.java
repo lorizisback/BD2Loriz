@@ -121,7 +121,6 @@ public class DBHelper {
 
     public ArrayList<MultiPath> createGeometry(ArrayList<String> poly, int polyTypeStart, int polyTypeEnd) throws Exception {
 
-        Log.d("drawPoly", "Inizio disegno poligono");
         ArrayList<MultiPath> polyg=new ArrayList<>();
 
         ExecutorService es = Executors.newCachedThreadPool();
@@ -129,7 +128,6 @@ public class DBHelper {
 
         for (int i = 0; i < poly.size(); i++) {
 
-            Log.d("lel", "Polygono " + i);
             coll.add(new GetSingleMultiPath(poly.get(i), i, polyTypeStart, polyTypeEnd));
 
         }
@@ -200,7 +198,6 @@ public class DBHelper {
 
         @Override
         public MultiPath call() throws java.lang.Exception {
-            Log.d("THREADS", "Thread " + id + " started.");
 
             String[] split_comma = passedString.substring(polyTypeStart, passedString.length() - polyTypeEnd).split("\\s*(,|\\s)\\s*");
 
@@ -209,11 +206,9 @@ public class DBHelper {
                 if (j != 0) {
                     geometry.lineTo(new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++])));
                 } else {
-                    Log.d("THREADS", "Thread " + id + " working.");
                     geometry.startPath(new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++])));
                 }
             }
-            Log.d("THREADS", "Thread " + id + " returning.");
             return geometry;
         }
     }
