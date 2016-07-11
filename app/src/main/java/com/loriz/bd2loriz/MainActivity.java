@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.widget.Toolbar;
 
 import com.esri.android.map.GraphicsLayer;
+import com.esri.android.map.Layer;
 import com.esri.android.map.MapOptions;
 import com.esri.android.map.MapView;
 import com.esri.core.geometry.GeometryEngine;
@@ -43,7 +44,7 @@ import jsqlite.Exception;
 public class MainActivity extends FragmentActivity
         implements NavigationView.OnNavigationItemSelectedListener, RapidFloatingActionContentLabelList.OnRapidFloatingActionContentLabelListListener {
 
-    private MapView mMapView;
+    public MapView mMapView;
     private String mMapState;
     private CustomViewPager mViewPager;
     private EMPagerAdapter mPagerAdapter;
@@ -53,21 +54,21 @@ public class MainActivity extends FragmentActivity
     private int MAP_PAGE = 0;
     private boolean isRFABOpen = false;
     private RapidFloatingActionButton rfaBtn;
-    private DBHelper dbHelper;
-    private SpatialReference input;
-    private SpatialReference output;
+    public DBHelper dbHelper;
+    public SpatialReference input;
+    public SpatialReference output;
     private boolean areProvinceVisible = false;
     private boolean areElettrodottiVisible = false;
     private SimpleMarkerSymbol sms;
-    private SimpleLineSymbol slsProv;
-    private SimpleLineSymbol slsElettro;
-    private SimpleLineSymbol slsAcqua;
+    public SimpleLineSymbol slsProv;
+    public SimpleLineSymbol slsElettro;
+    public SimpleLineSymbol slsAcqua;
     private GraphicsLayer layer_province;
     private Graphic[] province_graphics;
     private Graphic[] elettrodotti_graphics;
     private PolyType polyType;
     private GraphicsLayer layer_elettrodotti;
-    private ProgressDialog pDialog;
+    public ProgressDialog pDialog;
     private Graphic[] acquedotti_graphics;
     private GraphicsLayer layer_acquedotti;
     private boolean areAcquedottiVisible = false;
@@ -106,6 +107,10 @@ public class MainActivity extends FragmentActivity
 
 
         //inizializzazione
+
+        pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Attendere prego...");
+        pDialog.setCancelable(false);
 
         mViewPager = (CustomViewPager) findViewById(R.id.viewpager);
         mViewPager.setPagingEnabled(false);
@@ -189,6 +194,13 @@ public class MainActivity extends FragmentActivity
                 .setResId(R.drawable.ic_search_white_24dp)
                 .setIconNormalColor(getColor(R.color.querypage))
                 .setIconPressedColor(getColor(R.color.querypage_dark))
+                .setWrapper(0)
+        );
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel("Rimuovi Layouts")
+                .setResId(R.drawable.ic_close_white_24dp)
+                .setIconNormalColor(getColor(R.color.clear_purple))
+                .setIconPressedColor(getColor(R.color.clear_purple_dark))
                 .setWrapper(0)
         );
     }
@@ -366,16 +378,29 @@ public class MainActivity extends FragmentActivity
                 break;
             }
 
+            case 4: {
+                for (int i = mMapView.getLayers().length-1; i > 0; i--) {
+                    mMapView.removeLayer(i);
+                    areAcquedottiVisible = false;
+                    areElettrodottiVisible = false;
+                    areProvinceVisible = false;
+                }
+
+                break;
+            }
+
         }
         rfabHelper.toggleContent();
         isRFABOpen = false;
     }
 
 
+
+
     private class MostraElettrodottiAsync extends AsyncTask<Void, Void, Graphic[]> {
         @Override
         protected Graphic[] doInBackground(Void... voids) {
-            ArrayList<String> res;
+            ArrayList<ArrayList<String>> res;
 
             res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTElettrodotto;");
             //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
@@ -383,7 +408,7 @@ public class MainActivity extends FragmentActivity
 
             ArrayList<MultiPath> pols = new ArrayList<>();
             try {
-                pols = dbHelper.createGeometry(res, polyType.LINESTRING, polyType.LINESTRING_END);
+                pols = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -401,9 +426,6 @@ public class MainActivity extends FragmentActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this);
-            pDialog.setMessage("Query in esecuzione...");
-            pDialog.setCancelable(false);
             pDialog.show();
         }
 
@@ -426,14 +448,14 @@ public class MainActivity extends FragmentActivity
     private class MostraProvinceAsync extends AsyncTask<Void, Void, Graphic[]> {
         @Override
         protected Graphic[] doInBackground(Void... voids) {
-            ArrayList<String> res;
+            ArrayList<ArrayList<String>> res;
 
             res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTProvincia;");
 
             ArrayList<MultiPath> pols = new ArrayList<>();
 
             try {
-                pols = dbHelper.createGeometry(res, polyType.POLYGON, polyType.POLYGON_END);
+                pols = dbHelper.createGeometry(res.get(0), polyType.POLYGON, polyType.POLYGON_END);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -452,9 +474,6 @@ public class MainActivity extends FragmentActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this);
-            pDialog.setMessage("Query in esecuzione...");
-            pDialog.setCancelable(false);
             pDialog.show();
         }
 
@@ -477,7 +496,7 @@ public class MainActivity extends FragmentActivity
     private class MostraAcquedottiAsync extends AsyncTask<Void, Void, Graphic[]> {
         @Override
         protected Graphic[] doInBackground(Void... voids) {
-            ArrayList<String> res;
+            ArrayList<ArrayList<String>> res;
 
             res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTAcquedotto;");
             //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
@@ -485,7 +504,7 @@ public class MainActivity extends FragmentActivity
 
             ArrayList<MultiPath> pols = new ArrayList<>();
             try {
-                pols = dbHelper.createGeometry(res, polyType.LINESTRING, polyType.LINESTRING_END);
+                pols = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -503,9 +522,6 @@ public class MainActivity extends FragmentActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this);
-            pDialog.setMessage("Query in esecuzione...");
-            pDialog.setCancelable(false);
             pDialog.show();
         }
 

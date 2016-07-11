@@ -14,6 +14,8 @@ public class PolyType {
     public final int POLYGON_END = 2;
     public final int LINESTRING = 11;
     public final int LINESTRING_END = 1;
+    public final int POINT = 6;
+    public final int POINT_END = 1;
 
     private PolyType() {
     }

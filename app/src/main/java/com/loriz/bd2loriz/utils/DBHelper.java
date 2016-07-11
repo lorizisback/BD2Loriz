@@ -38,6 +38,7 @@ public class DBHelper {
     private String TAG = "DBHelper";
     private String TAG_SQL = "DBHelper_JSQLite";
     private Database database;
+    private boolean isInitialized = false;
 
     private DBHelper(Context context) throws IOException {
 
@@ -100,20 +101,33 @@ public class DBHelper {
         }
     }
 
-    public ArrayList<String> prepare(String query) {
+    public ArrayList<ArrayList<String>> prepare(String query) {
 
         //SUPER MEGA TEST
-        ArrayList<String> resultList = new ArrayList<String>();
+        ArrayList<ArrayList<String>> resultList = new ArrayList<ArrayList<String>>();
+
 
         try {
             Stmt stmt = database.prepare(query);
 
+            int log = 0;
             while (stmt.step()) {
-                String result = stmt.column_string(0);
-                resultList.add(result);
+                Log.d("STMT", "Statement iterazione n. " + log++);
+
+                for (int i = 0; i < stmt.column_count(); i++) {
+
+                    if (resultList.size() != stmt.column_count()) {
+                        resultList.add(new ArrayList<String>());
+                    }
+
+                    resultList.get(i).add(stmt.column_string(i));
+
+
+                }
             }
             stmt.close();
         } catch (Exception e) {
+            Log.e("AIUTO", "Query rotta! " + e.toString());
             e.printStackTrace();
         }
         return resultList;
@@ -121,19 +135,19 @@ public class DBHelper {
 
     public ArrayList<MultiPath> createGeometry(ArrayList<String> poly, int polyTypeStart, int polyTypeEnd) throws Exception {
 
-        ArrayList<MultiPath> polyg=new ArrayList<>();
+        ArrayList<MultiPath> polyg = new ArrayList<>();
 
         ExecutorService es = Executors.newCachedThreadPool();
         ArrayList<GetSingleMultiPath> coll = new ArrayList<>();
 
         for (int i = 0; i < poly.size(); i++) {
 
-            coll.add(new GetSingleMultiPath(poly.get(i), i, polyTypeStart, polyTypeEnd));
+            coll.add(new GetSingleMultiPath(poly.get(i), polyTypeStart, polyTypeEnd));
 
         }
         List<Future<MultiPath>> results = new LinkedList<>();
         try {
-          results = es.invokeAll(coll);
+            results = es.invokeAll(coll);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -152,41 +166,71 @@ public class DBHelper {
         return polyg;
     }
 
+    public ArrayList<Point> createPointSet(ArrayList<String> pointList) throws Exception {
+
+        ArrayList<Point> points = new ArrayList<>();
+
+        ExecutorService es = Executors.newCachedThreadPool();
+        ArrayList<GetPoint> coll = new ArrayList<>();
+
+        for (int i = 0; i < pointList.size(); i++) {
+
+            coll.add(new GetPoint(pointList.get(i)));
+
+        }
+        List<Future<Point>> results = new LinkedList<>();
+        try {
+            results = es.invokeAll(coll);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        for (Future<Point> fut : results) {
+            try {
+                points.add(fut.get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return points;
+    }
+
 
     class GetSingleMultiPath implements Callable<MultiPath> {
 
         private int trick;
         private int polyTypeStart;
         private int polyTypeEnd;
-        private int id;
         private MultiPath geometry;
         private String passedString;
 
-        public GetSingleMultiPath(String passedString, int id, int polyTypeStart, int polyTypeEnd) {
+        public GetSingleMultiPath(String passedString, int polyTypeStart, int polyTypeEnd) {
             this.passedString = passedString;
-            this.id = id;
             this.polyTypeStart = polyTypeStart;
             this.polyTypeEnd = polyTypeEnd;
 
-            switch (polyTypeStart){
-                case 9:
-                {
+            switch (polyTypeStart) {
+                case 9: {
                     //case POLYGON
                     geometry = new Polygon();
                     trick = 4;
                     break;
                 }
 
-                case 11:
-                {
+                case 11: {
                     //case POLYLINE
                     geometry = new Polyline();
                     trick = 0;
                     break;
                 }
 
-                default:
-                {
+                default: {
+
+                    //dummy
                     geometry = new Polygon();
                     trick = 4;
 
@@ -201,7 +245,7 @@ public class DBHelper {
 
             String[] split_comma = passedString.substring(polyTypeStart, passedString.length() - polyTypeEnd).split("\\s*(,|\\s)\\s*");
 
-            for (int j = 0; j < split_comma.length; j+=trick) {
+            for (int j = 0; j < split_comma.length; j += trick) {
 
                 if (j != 0) {
                     geometry.lineTo(new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++])));
@@ -210,6 +254,27 @@ public class DBHelper {
                 }
             }
             return geometry;
+        }
+    }
+
+    class GetPoint implements Callable<Point> {
+
+        private Point point;
+        private String passedString;
+
+        public GetPoint(String passedString) {
+            this.passedString = passedString;
+        }
+
+        @Override
+        public Point call() throws java.lang.Exception {
+
+            String[] split_comma = passedString.substring(6, passedString.length() - 1).split("\\s*(,|\\s)\\s*");
+
+            for (int j = 0; j < split_comma.length; j++) {
+                point = new Point(Double.parseDouble(split_comma[j++]), Double.parseDouble(split_comma[j++]));
+            }
+            return point;
         }
     }
 

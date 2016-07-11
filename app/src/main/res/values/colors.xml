@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#0c52af</color>
     <color name="colorPrimaryDark">#093776</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#0c52af</color>
     <color name="sardegna_brown">#e23900</color>
     <color name="sardegna_brown_dark">#8e2400</color>
     <color name="elettro_yellow">#ffab00</color>
@@ -11,6 +11,8 @@
     <color name="acqua_blue_dark">#15628e</color>
     <color name="querypage">#00e600</color>
     <color name="querypage_dark">#008000</color>
+    <color name="clear_purple">#aa00ff</color>
+    <color name="clear_purple_dark">#7b1fa2</color>
     <color name="text_black">#0b0b0b</color>
     <color name="divider">#222222</color>
 </resources>

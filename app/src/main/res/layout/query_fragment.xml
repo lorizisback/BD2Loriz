@@ -1,12 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
-   <TextView
+   <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
        android:layout_width="match_parent"
-       android:layout_height="match_parent"
-       android:text="TEST!"/>
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:id="@+id/radio_group">
+      <RadioButton android:id="@+id/radio_1"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Acquedotti in Provincia" />
 
+      <RadioButton android:id="@+id/radio_5"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Elettrodotti in Provincia" />
+
+      <RadioButton android:id="@+id/radio_2"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Intersezione Acquedotti e Elettrodotti contenuti in provincia"/>
+
+      <RadioButton android:id="@+id/radio_6"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Elettrodotti e Acquedotti passanti per il bordo di una provincia " />
+
+      <RadioButton android:id="@+id/radio_3"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Province attraversate da un Acquedotto"/>
+
+      <RadioButton android:id="@+id/radio_4"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Province attraversate da un Elettrodotto"/>
+   </RadioGroup>
+
+   <EditText
+       android:id="@+id/edittext"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_below="@id/radio_group"
+       android:hint="es. Cagliari"
+       android:textStyle="italic"
+       android:padding="10dp"
+       android:textSize="20dp"
+       android:textColor="@color/colorPrimaryDark" />
+
+
+   <Button
+       android:id="@+id/button"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="Start!"/>
 
 </LinearLayout>
