@@ -40,22 +40,30 @@
           android:text="Province attraversate da un Elettrodotto"/>
    </RadioGroup>
 
-   <EditText
-       android:id="@+id/edittext"
+   <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_below="@id/radio_group"
-       android:hint="es. Cagliari"
-       android:textStyle="italic"
-       android:padding="10dp"
-       android:textSize="20dp"
-       android:textColor="@color/colorPrimaryDark" />
+       android:orientation="horizontal">
+
+      <EditText
+          android:id="@+id/edittext"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:hint="es. 'Cagliari' o '76'"
+          android:textStyle="italic"
+          android:padding="10dp"
+          android:textSize="20dp"
+          android:textColor="@color/text_black" />
 
 
-   <Button
-       android:id="@+id/button"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:text="Start!"/>
+      <Button
+          android:id="@+id/button"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Esegui Query"/>
+
+   </LinearLayout>
+
 
 </LinearLayout>

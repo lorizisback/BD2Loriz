@@ -176,27 +176,31 @@ public class QueryFragment extends Fragment {
                     "GROUP BY acquedotto.PK_UID;");
 
 
+
             ArrayList<MultiPath> prov_res = new ArrayList<>();
 
-            try {
-                prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (res.size() != 0) {
+
+                try {
+                    prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
 
-            prov_graphics = new Graphic[prov_res.size()];
+                prov_graphics = new Graphic[prov_res.size()];
 
-            for (int i = 0; i < prov_res.size(); i++) {
-                Polyline temp = (Polyline) prov_res.get(i);
-                prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
-            }
+                for (int i = 0; i < prov_res.size(); i++) {
+                    Polyline temp = (Polyline) prov_res.get(i);
+                    prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
+                }
 
-            query1_layer = new GraphicsLayer();
+                query1_layer = new GraphicsLayer();
 
-            query1_layer.addGraphics(prov_graphics);
+                query1_layer.addGraphics(prov_graphics);
 
-            return query1_layer;
+                return query1_layer;
+            }   else return null;
         }
 
         @Override
@@ -213,7 +217,11 @@ public class QueryFragment extends Fragment {
             if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            } else {
+                Toast.makeText(getContext(), "Nessun Risultato!", Toast.LENGTH_SHORT).show();
+            }
 
         }
     }
@@ -239,25 +247,28 @@ public class QueryFragment extends Fragment {
 
             ArrayList<MultiPath> prov_res = new ArrayList<>();
 
-            try {
-                prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (res.size() != 0) {
+
+                try {
+                    prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
 
-            prov_graphics = new Graphic[prov_res.size()];
+                prov_graphics = new Graphic[prov_res.size()];
 
-            for (int i = 0; i < prov_res.size(); i++) {
-                Polyline temp = (Polyline) prov_res.get(i);
-                prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
-            }
+                for (int i = 0; i < prov_res.size(); i++) {
+                    Polyline temp = (Polyline) prov_res.get(i);
+                    prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
+                }
 
-            query1_layer = new GraphicsLayer();
+                query1_layer = new GraphicsLayer();
 
-            query1_layer.addGraphics(prov_graphics);
+                query1_layer.addGraphics(prov_graphics);
 
-            return query1_layer;
+                return query1_layer;
+            } else return null;
         }
 
         @Override
@@ -274,7 +285,11 @@ public class QueryFragment extends Fragment {
             if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            } else {
+                Toast.makeText(getContext(), "Nessun Risultato!", Toast.LENGTH_SHORT).show();
+            }
 
         }
     }
@@ -292,25 +307,29 @@ public class QueryFragment extends Fragment {
 
             ArrayList<MultiPath> prov_res = new ArrayList<>();
 
-            try {
-                prov_res = dbHelper.createGeometry(res.get(0), polyType.POLYGON, polyType.POLYGON_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (res.size() != 0) {
 
 
-            prov_graphics = new Graphic[prov_res.size()];
+                try {
+                    prov_res = dbHelper.createGeometry(res.get(0), polyType.POLYGON, polyType.POLYGON_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-            for (int i = 0; i < prov_res.size(); i++) {
-                Polygon temp = (Polygon) prov_res.get(i);
-                prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsProv);
-            }
 
-            query1_layer = new GraphicsLayer();
+                prov_graphics = new Graphic[prov_res.size()];
 
-            query1_layer.addGraphics(prov_graphics);
+                for (int i = 0; i < prov_res.size(); i++) {
+                    Polygon temp = (Polygon) prov_res.get(i);
+                    prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsProv);
+                }
 
-            return query1_layer;
+                query1_layer = new GraphicsLayer();
+
+                query1_layer.addGraphics(prov_graphics);
+
+                return query1_layer;
+            } else return null;
         }
 
 
@@ -320,7 +339,10 @@ public class QueryFragment extends Fragment {
             /*if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }*/
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            }
+
         }
     }
 
@@ -336,25 +358,29 @@ public class QueryFragment extends Fragment {
 
             ArrayList<MultiPath> prov_res = new ArrayList<>();
 
-            try {
-                prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (res.size() != 0) {
 
 
-            prov_graphics = new Graphic[prov_res.size()];
+                try {
+                    prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-            for (int i = 0; i < prov_res.size(); i++) {
-                Polyline temp = (Polyline) prov_res.get(i);
-                prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
-            }
 
-            query1_layer = new GraphicsLayer();
+                prov_graphics = new Graphic[prov_res.size()];
 
-            query1_layer.addGraphics(prov_graphics);
+                for (int i = 0; i < prov_res.size(); i++) {
+                    Polyline temp = (Polyline) prov_res.get(i);
+                    prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
+                }
 
-            return query1_layer;
+                query1_layer = new GraphicsLayer();
+
+                query1_layer.addGraphics(prov_graphics);
+
+                return query1_layer;
+            } else return null;
         }
 
 
@@ -364,7 +390,10 @@ public class QueryFragment extends Fragment {
             /*if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }*/
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            }
+
         }
     }
 
@@ -380,25 +409,29 @@ public class QueryFragment extends Fragment {
 
             ArrayList<MultiPath> prov_res = new ArrayList<>();
 
-            try {
-                prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (res.size() != 0) {
 
 
-            prov_graphics = new Graphic[prov_res.size()];
+                try {
+                    prov_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-            for (int i = 0; i < prov_res.size(); i++) {
-                Polyline temp = (Polyline) prov_res.get(i);
-                prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
-            }
 
-            query1_layer = new GraphicsLayer();
+                prov_graphics = new Graphic[prov_res.size()];
 
-            query1_layer.addGraphics(prov_graphics);
+                for (int i = 0; i < prov_res.size(); i++) {
+                    Polyline temp = (Polyline) prov_res.get(i);
+                    prov_graphics[i] = new Graphic(GeometryEngine.project(temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
+                }
 
-            return query1_layer;
+                query1_layer = new GraphicsLayer();
+
+                query1_layer.addGraphics(prov_graphics);
+
+                return query1_layer;
+            } else return null;
         }
 
 
@@ -408,7 +441,10 @@ public class QueryFragment extends Fragment {
             /*if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }*/
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            }
+
         }
     }
 
@@ -443,34 +479,37 @@ public class QueryFragment extends Fragment {
                     "ymax >= MbrMinY(province.Geometry)) " +
                     "GROUP BY elettrodotti.PK_UID, acquedotti.PK_UID;");
 
-
-            try {
-                acqua_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
-                elettro_res = dbHelper.createGeometry(res.get(1), polyType.LINESTRING, polyType.LINESTRING_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (res.size() != 0) {
 
 
-            acqua_graphics = new Graphic[acqua_res.size()];
-            elettro_graphics = new Graphic[elettro_res.size()];
+                try {
+                    acqua_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
+                    elettro_res = dbHelper.createGeometry(res.get(1), polyType.LINESTRING, polyType.LINESTRING_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-            for (int i = 0; i < acqua_res.size(); i++) {
-                Polyline acqua_temp = (Polyline) acqua_res.get(i);
-                acqua_graphics[i] = new Graphic(GeometryEngine.project(acqua_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
-            }
 
-            for (int i = 0; i < elettro_res.size(); i++) {
-                Polyline elettro_temp = (Polyline) elettro_res.get(i);
-                elettro_graphics[i] = new Graphic(GeometryEngine.project(elettro_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
-            }
+                acqua_graphics = new Graphic[acqua_res.size()];
+                elettro_graphics = new Graphic[elettro_res.size()];
 
-            query2_layer = new GraphicsLayer();
+                for (int i = 0; i < acqua_res.size(); i++) {
+                    Polyline acqua_temp = (Polyline) acqua_res.get(i);
+                    acqua_graphics[i] = new Graphic(GeometryEngine.project(acqua_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
+                }
 
-            query2_layer.addGraphics(acqua_graphics);
-            query2_layer.addGraphics(elettro_graphics);
+                for (int i = 0; i < elettro_res.size(); i++) {
+                    Polyline elettro_temp = (Polyline) elettro_res.get(i);
+                    elettro_graphics[i] = new Graphic(GeometryEngine.project(elettro_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
+                }
 
-            return query2_layer;
+                query2_layer = new GraphicsLayer();
+
+                query2_layer.addGraphics(acqua_graphics);
+                query2_layer.addGraphics(elettro_graphics);
+
+                return query2_layer;
+            } else return null;
         }
 
         @Override
@@ -487,7 +526,11 @@ public class QueryFragment extends Fragment {
             if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            } else {
+                Toast.makeText(getContext(), "Nessun Risultato!", Toast.LENGTH_SHORT).show();
+            }
 
         }
     }
@@ -522,34 +565,36 @@ public class QueryFragment extends Fragment {
                             "ymax >= MbrMinY(province.Geometry)) " +
                             "GROUP BY elettrodotti.PK_UID, acquedotti.PK_UID;");
 
+            if (res.size() != 0) {
 
-            try {
-                acqua_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
-                elettro_res = dbHelper.createGeometry(res.get(1), polyType.LINESTRING, polyType.LINESTRING_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                try {
+                    acqua_res = dbHelper.createGeometry(res.get(0), polyType.LINESTRING, polyType.LINESTRING_END);
+                    elettro_res = dbHelper.createGeometry(res.get(1), polyType.LINESTRING, polyType.LINESTRING_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
 
-            acqua_graphics = new Graphic[acqua_res.size()];
-            elettro_graphics = new Graphic[elettro_res.size()];
+                acqua_graphics = new Graphic[acqua_res.size()];
+                elettro_graphics = new Graphic[elettro_res.size()];
 
-            for (int i = 0; i < acqua_res.size(); i++) {
-                Polyline acqua_temp = (Polyline) acqua_res.get(i);
-                acqua_graphics[i] = new Graphic(GeometryEngine.project(acqua_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
-            }
+                for (int i = 0; i < acqua_res.size(); i++) {
+                    Polyline acqua_temp = (Polyline) acqua_res.get(i);
+                    acqua_graphics[i] = new Graphic(GeometryEngine.project(acqua_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsAcqua);
+                }
 
-            for (int i = 0; i < elettro_res.size(); i++) {
-                Polyline elettro_temp = (Polyline) elettro_res.get(i);
-                elettro_graphics[i] = new Graphic(GeometryEngine.project(elettro_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
-            }
+                for (int i = 0; i < elettro_res.size(); i++) {
+                    Polyline elettro_temp = (Polyline) elettro_res.get(i);
+                    elettro_graphics[i] = new Graphic(GeometryEngine.project(elettro_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsElettro);
+                }
 
-            query2_layer = new GraphicsLayer();
+                query2_layer = new GraphicsLayer();
 
-            query2_layer.addGraphics(acqua_graphics);
-            query2_layer.addGraphics(elettro_graphics);
+                query2_layer.addGraphics(acqua_graphics);
+                query2_layer.addGraphics(elettro_graphics);
 
-            return query2_layer;
+                return query2_layer;
+            } else return null;
         }
 
         @Override
@@ -566,7 +611,11 @@ public class QueryFragment extends Fragment {
             if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            } else {
+                Toast.makeText(getContext(), "Nessun Risultato!", Toast.LENGTH_SHORT).show();
+            }
 
         }
     }
@@ -597,12 +646,13 @@ public class QueryFragment extends Fragment {
                     "ymax >= MbrMinY(acquedotti.Geometry)) " +
                     "GROUP BY province.PK_UID;");
 
+            if (res.size() != 0) {
 
-            try {
-                prov_res = dbHelper.createGeometry(res.get(0), polyType.POLYGON, polyType.POLYGON_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                try {
+                    prov_res = dbHelper.createGeometry(res.get(0), polyType.POLYGON, polyType.POLYGON_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
 
             prov_graphics = new Graphic[prov_res.size()];
@@ -617,6 +667,7 @@ public class QueryFragment extends Fragment {
             query2_layer.addGraphics(prov_graphics);
 
             return query2_layer;
+        } else return null;
         }
 
         @Override
@@ -633,7 +684,11 @@ public class QueryFragment extends Fragment {
             if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            } else {
+                Toast.makeText(getContext(), "Nessun Risultato!", Toast.LENGTH_SHORT).show();
+            }
 
         }
     }
@@ -664,26 +719,28 @@ public class QueryFragment extends Fragment {
                     "ymax >= MbrMinY(elettrodotto.Geometry)) " +
                     "GROUP BY province.PK_UID;");
 
+            if (res.size() != 0) {
 
-            try {
-                prov_res = dbHelper.createGeometry(res.get(0), polyType.POLYGON, polyType.POLYGON_END);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                try {
+                    prov_res = dbHelper.createGeometry(res.get(0), polyType.POLYGON, polyType.POLYGON_END);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
 
-            prov_graphics = new Graphic[prov_res.size()];
+                prov_graphics = new Graphic[prov_res.size()];
 
-            for (int i = 0; i < prov_res.size(); i++) {
-                Polygon acqua_temp = (Polygon) prov_res.get(i);
-                prov_graphics[i] = new Graphic(GeometryEngine.project(acqua_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsProv);
-            }
+                for (int i = 0; i < prov_res.size(); i++) {
+                    Polygon acqua_temp = (Polygon) prov_res.get(i);
+                    prov_graphics[i] = new Graphic(GeometryEngine.project(acqua_temp, mMainActivity.input, mMainActivity.output), mMainActivity.slsProv);
+                }
 
-            query2_layer = new GraphicsLayer();
+                query2_layer = new GraphicsLayer();
 
-            query2_layer.addGraphics(prov_graphics);
+                query2_layer.addGraphics(prov_graphics);
 
-            return query2_layer;
+                return query2_layer;
+            } else return null;
         }
 
         @Override
@@ -700,7 +757,11 @@ public class QueryFragment extends Fragment {
             if (mMainActivity.pDialog.isShowing()) {
                 mMainActivity.pDialog.dismiss();
             }
-            mMainActivity.mMapView.addLayer(aVoid);
+            if (aVoid != null) {
+                mMainActivity.mMapView.addLayer(aVoid);
+            } else {
+                Toast.makeText(getContext(), "Nessun Risultato!", Toast.LENGTH_SHORT).show();
+            }
 
         }
     }

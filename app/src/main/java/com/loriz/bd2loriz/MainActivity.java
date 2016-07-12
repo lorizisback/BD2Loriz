@@ -45,7 +45,6 @@ public class MainActivity extends FragmentActivity
         implements NavigationView.OnNavigationItemSelectedListener, RapidFloatingActionContentLabelList.OnRapidFloatingActionContentLabelListListener {
 
     public MapView mMapView;
-    private String mMapState;
     private CustomViewPager mViewPager;
     private EMPagerAdapter mPagerAdapter;
     private RapidFloatingActionHelper rfabHelper;
@@ -59,7 +58,6 @@ public class MainActivity extends FragmentActivity
     public SpatialReference output;
     private boolean areProvinceVisible = false;
     private boolean areElettrodottiVisible = false;
-    private SimpleMarkerSymbol sms;
     public SimpleLineSymbol slsProv;
     public SimpleLineSymbol slsElettro;
     public SimpleLineSymbol slsAcqua;
@@ -120,7 +118,6 @@ public class MainActivity extends FragmentActivity
         input = SpatialReference.create(3003);
         output = SpatialReference.create(3857);
 
-        sms = new SimpleMarkerSymbol(Color.RED, 3, SimpleMarkerSymbol.STYLE.CIRCLE);
         slsProv = new SimpleLineSymbol(getColor(R.color.sardegna_brown), 2, SimpleLineSymbol.STYLE.SOLID);
         slsElettro = new SimpleLineSymbol(getColor(R.color.elettro_yellow), 2, SimpleLineSymbol.STYLE.DASH);
         slsAcqua = new SimpleLineSymbol(getColor(R.color.acqua_blue), 2, SimpleLineSymbol.STYLE.DASH);
@@ -215,8 +212,6 @@ public class MainActivity extends FragmentActivity
     public void onPause() {
         super.onPause();
         if (mMapView != null) {
-            // Save map state
-            mMapState = mMapView.retainState();
 
             // Call MapView.pause to suspend map rendering while the activity is
             // paused, which can save battery usage.
@@ -259,7 +254,6 @@ public class MainActivity extends FragmentActivity
         // Handle navigation view item clicks here.
 
         if (mMapView == null) {
-            //mMapView = ((MapFragment) mPagerAdapter.getFragment(0)).mMapView;
             mMapView = (MapView) mPagerAdapter.getFragment(0).getView().findViewById(R.id.map_layout);
         }
         int id = item.getItemId();
@@ -403,8 +397,7 @@ public class MainActivity extends FragmentActivity
             ArrayList<ArrayList<String>> res;
 
             res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTElettrodotto;");
-            //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
-            //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
+
 
             ArrayList<MultiPath> pols = new ArrayList<>();
             try {
@@ -499,8 +492,6 @@ public class MainActivity extends FragmentActivity
             ArrayList<ArrayList<String>> res;
 
             res = dbHelper.prepare("SELECT ASText(Geometry) " + "from DBTAcquedotto;");
-            //res = dbHelper.prepare("SELECT ASText(ST_Transform(Geometry , 3857)) " + "from DBTProvincia;");
-            //res = dbHelper.prepare("SELECT ASText(ST_GeometryN(DBTProvincia.Geometry,1)) " + "from DBTProvincia;");
 
             ArrayList<MultiPath> pols = new ArrayList<>();
             try {
