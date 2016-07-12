@@ -94,8 +94,14 @@ public class QueryFragment extends Fragment {
                     if (radio2.isChecked()) {
                         // SECONDA QUERY
 
-                        new QueryAcquElettrIntersProv().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, editText.getText().toString());
-                        new QueryProvincia().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, editText.getText().toString());
+                            if (editText.getText().toString().equalsIgnoreCase("Medio-Campidano")) {
+                                prov = "Madio-Campidano";
+                            } else {
+                                prov = editText.getText().toString();
+                            }
+
+                        new QueryAcquElettrIntersProv().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, prov);
+                        new QueryProvincia().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, prov);
 
                     }
 
