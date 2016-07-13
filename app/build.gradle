@@ -24,10 +24,6 @@ android {
         }
     }
 
-    /*compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }*/
     sourceSets {
         main {
             jniLibs.srcDir new File(buildDir, 'native-libs')
@@ -70,11 +66,3 @@ task copyNativeLibs(type: Copy) {
 
 tasks.withType(JavaCompile) { compileTask -> compileTask.dependsOn copyNativeLibs }
 clean.dependsOn 'cleanCopyNativeLibs'
-
-/*
-tasks.withType(PackageApplication) { pkgTask ->
-    //pkgTask.jniDir new File(buildDir, 'native-libs')
-    pkgTask.jniFolders = new HashSet<File>()
-    pkgTask.jniFolders.add(new File(buildDir, 'native-libs'))
-}
-*/
